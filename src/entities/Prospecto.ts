@@ -74,6 +74,9 @@ export class Prospecto {
     @Column({ nullable: true })
     comision?: string;
 
+    @Column({ nullable: true })
+    interes_estado?: string;
+
     @CreateDateColumn({ type: 'timestamptz' })
     fecha_ingreso!: Date;
 

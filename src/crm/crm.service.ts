@@ -270,6 +270,7 @@ export class CrmService {
             silenciar_automatizaciones: data.silenciar_automatizaciones ?? false,
             fue_alumno: data.fue_alumno ?? false,
             comision: data.comision,
+            interes_estado: data.interes_estado,
         });
         if (!p.asignado_a) {
             const nextOp = await this.getNextOperator();
