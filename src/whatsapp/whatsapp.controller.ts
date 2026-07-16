@@ -25,8 +25,8 @@ export class WhatsAppController {
     }
 
     @Get('conversations')
-    conversations(@Query('limit') limit?: string, @Query('offset') offset?: string) {
-        return this.whatsAppService.conversations({ limit, offset });
+    conversations(@Query('limit') limit?: string, @Query('offset') offset?: string, @Query('search') search?: string) {
+        return this.whatsAppService.conversations({ limit, offset, search });
     }
 
     @Get('status')

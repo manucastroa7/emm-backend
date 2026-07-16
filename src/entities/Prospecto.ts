@@ -71,6 +71,9 @@ export class Prospecto {
     @Column({ default: false })
     silenciar_automatizaciones!: boolean;
 
+    @Column({ nullable: true })
+    comision?: string;
+
     @CreateDateColumn({ type: 'timestamptz' })
     fecha_ingreso!: Date;
 

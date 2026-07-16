@@ -26,6 +26,7 @@ export interface SerializedMessage {
 interface PaginationOptions {
     limit?: string | number;
     offset?: string | number;
+    search?: string;
 }
 
 interface MessageQueryOptions {
@@ -423,6 +424,7 @@ export class WhatsAppService implements OnModuleInit {
             etiquetas: prospecto.etiquetas || [],
             no_leidos,
             fue_alumno: prospecto.fue_alumno,
+            comision: prospecto.comision,
             fecha_ingreso: prospecto.fecha_ingreso,
             notas_generales: prospecto.notas_generales,
             silenciar_automatizaciones: prospecto.silenciar_automatizaciones,
@@ -561,12 +563,14 @@ export class WhatsAppService implements OnModuleInit {
     async conversations(options: PaginationOptions = {}) {
         const limit = this.parseLimit(options.limit, 60, 150);
         const offset = this.parseOffset(options.offset);
+        const search = options.search ? String(options.search).trim() : '';
+        const searchParam = search ? `%${search}%` : '';
 
         const rows = await this.prospectoRepo.query(`
             SELECT
                 p.id, p.nombre, p.apellido, p.telefono, p.whatsapp_id, p.email,
                 p.pais, p.curso_interes, p.origen, p.estado, p.asignado_a,
-                p.etiquetas, p.whatsapp_ultimo_leido_at, p.fue_alumno,
+                p.etiquetas, p.whatsapp_ultimo_leido_at, p.fue_alumno, p.comision,
                 p.fecha_ingreso, p.notas_generales,
                 row_to_json(m.*) AS ultimo_mensaje,
                 COALESCE(u.no_leidos, 0)::int AS no_leidos
@@ -584,9 +588,10 @@ export class WhatsAppService implements OnModuleInit {
                   AND (p.whatsapp_ultimo_leido_at IS NULL OR um.fecha_envio > p.whatsapp_ultimo_leido_at)
             ) u ON true
             WHERE (p.origen IN ('WhatsApp', 'Facebook', 'Instagram') OR m.id_mensaje IS NOT NULL OR (p.telefono IS NOT NULL AND p.telefono != ''))
+              AND ($3 = '' OR p.nombre ILIKE $3 OR p.apellido ILIKE $3 OR p.telefono ILIKE $3 OR (p.nombre || ' ' || p.apellido) ILIKE $3)
             ORDER BY (COALESCE(u.no_leidos, 0) > 0) DESC, COALESCE(m.fecha_envio, p.fecha_ingreso) DESC NULLS LAST, p.fecha_ingreso DESC
             LIMIT $1 OFFSET $2
-        `, [limit + 1, offset]);
+        `, [limit + 1, offset, searchParam]);
 
         const pageRows = rows.slice(0, limit);
         const items = await Promise.all(pageRows.map((row: any) => {
@@ -596,6 +601,7 @@ export class WhatsAppService implements OnModuleInit {
                 curso_interes: row.curso_interes, origen: row.origen, estado: row.estado,
                 asignado_a: row.asignado_a, etiquetas: this.normalizeTags(row.etiquetas),
                 whatsapp_ultimo_leido_at: row.whatsapp_ultimo_leido_at, fue_alumno: row.fue_alumno,
+                comision: row.comision,
                 fecha_ingreso: row.fecha_ingreso, notas_generales: row.notas_generales,
             });
 

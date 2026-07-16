@@ -268,6 +268,8 @@ export class CrmService {
             etiquetas: this.normalizeTags(data.etiquetas),
             notas_generales: data.notas_generales,
             silenciar_automatizaciones: data.silenciar_automatizaciones ?? false,
+            fue_alumno: data.fue_alumno ?? false,
+            comision: data.comision,
         });
         if (!p.asignado_a) {
             const nextOp = await this.getNextOperator();
